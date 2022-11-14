@@ -1,5 +1,6 @@
-//#ifndef KOLEJKA_H_INCLUDED
-//#define KOLEJKA_H_INCLUDED
+#ifndef KOLEJKA_H
+#define KOLEJKA_H
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -24,6 +25,4 @@ bool qDeque(queue_t* , void*);
 bool qFront(const queue_t*, void*);
 void qClear(queue_t*);
 
-
-
-//#endif // KOLEJKA_H_INCLUDED
+#endif
