@@ -1,6 +1,5 @@
 //#ifndef KOLEJKA_H_INCLUDED
 //#define KOLEJKA_H_INCLUDED
-
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>

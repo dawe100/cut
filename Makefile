@@ -1,6 +1,6 @@
 CFLAGS ?= -Wall -Wextra
 
-PROGNAME = cut
+PROGNAME = a
 
 SRCDIR = src
 INCDIR = inc
