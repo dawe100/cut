@@ -1,4 +1,15 @@
-CFLAGS = -Wall -Wextra
+CLANGFLAGS = -Weverything -Wno-padded -Wno-vla -Wno-double-promotion
+GCCFLAGS = -Wall -Wextra
+
+ifeq (${CC}, gcc)
+	CFLAGS = ${GCCFLAGS}
+else 
+	ifeq (${CC}, clang)
+		CFLAGS = ${CLANGFLAGS}
+	else
+		CFLAGS = 
+	endif
+endif
 
 PROGNAME = a
 
@@ -19,7 +30,7 @@ ${PROGNAME}: ${OBJS}
 	${CC} -o $@ ${OBJS} -pthread
 
 ${OBJS}: ${OBJDIR}/%.o : ${SRCDIR}/%.c
-	${CC} -c $< -o $@ ${CFLAGS} ${INCFLAG}
+	${CC} -c $< -o $@ ${INCFLAG} ${CFLAGS}
 
 
 .PHONY: clean

@@ -17,7 +17,7 @@ float cpuCalc(cpustat_t prev, cpustat_t curr){
     total_d = curr_total - prev_total;
     idle_d  = curr_idle - prev_idle;
 
-	return (float)(total_d - idle_d)*100.0/(float)total_d;
+	return (total_d - idle_d)*100/(float)total_d;
 }
 
 

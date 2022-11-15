@@ -10,6 +10,11 @@
 
 #define L_SEK 1
 
+void* thReaderFunc(void* arg);
+void* thAnalyzerFunc(void* arg);
+void* thPrinterFunc(void* arg);
+
+
 typedef struct QueueTh_s{
     queue_t* queue;
     pthread_mutex_t mutex;
@@ -17,83 +22,9 @@ typedef struct QueueTh_s{
 }queueTh_t;
 
 
-queueTh_t q_CPUs, q_CPUsPerc;
+static queueTh_t q_CPUs, q_CPUsPerc;
 
-unsigned int cpu_count = 0;
-
-
-
-
-void* thReaderFunc(void* arg){
-
-    cpustat_t CPUs[cpu_count];
-
-    while(1){
-        if(cpuReadAll("/proc/stat", CPUs)){
-            pthread_mutex_lock(&q_CPUs.mutex);
-            if(qEnque(q_CPUs.queue, CPUs))
-                pthread_cond_signal(&q_CPUs.cond);
-            pthread_mutex_unlock(&q_CPUs.mutex);
-        }
-
-       sleep(L_SEK);
-    }
-
-    (void)arg;
-}
-
-
-void* thAnalyzerFunc(void* arg){
-
-    cpustat_t CPUsprev[cpu_count], CPUscurr[cpu_count];
-    float CPUsPerc[cpu_count];
-
-    memset(CPUsprev, 0, sizeof(CPUsprev)); //inicjalizacja zerami
-    memset(CPUscurr, 0, sizeof(CPUscurr));
-
-    while(1){
-
-        pthread_mutex_lock(&q_CPUs.mutex);
-        while(!qDeque(q_CPUs.queue, CPUscurr))
-            pthread_cond_wait(&q_CPUs.cond, &q_CPUs.mutex);
-        pthread_mutex_unlock(&q_CPUs.mutex);
-
-        cpuCalcAll(CPUsprev, CPUscurr, CPUsPerc, cpu_count);
-        memcpy(CPUsprev, CPUscurr, sizeof(CPUsprev));
-
-
-        pthread_mutex_lock(&q_CPUsPerc.mutex);
-        if(qEnque(q_CPUsPerc.queue, CPUsPerc))
-            pthread_cond_signal(&q_CPUsPerc.cond);
-
-        pthread_mutex_unlock(&q_CPUsPerc.mutex);
-
-    }
-    (void)arg;
-}
-
-
-void* thPrinterFunc(void* arg){
-
-    float CPUsPerc[cpu_count];
-
-
-    while(1){
-        pthread_mutex_lock(&q_CPUsPerc.mutex);
-        while(!qDeque(q_CPUsPerc.queue, CPUsPerc))
-            pthread_cond_wait(&q_CPUsPerc.cond, &q_CPUsPerc.mutex);
-        pthread_mutex_unlock(&q_CPUsPerc.mutex);
-
-
-        cpuPrint(CPUsPerc, cpu_count);
-        printf("\n");
-
-        sleep(L_SEK);
-    }
-    (void)arg;
-}
-
-
+static unsigned int cpu_count = 0;
 
 
 
@@ -133,3 +64,75 @@ int main(){
 
     return 0;
 }
+
+
+
+
+void* thReaderFunc(void* arg){
+    (void)arg;
+
+    cpustat_t CPUs[cpu_count];
+
+    while(1){
+        if(cpuReadAll("/proc/stat", CPUs)){
+            pthread_mutex_lock(&q_CPUs.mutex);
+            if(qEnque(q_CPUs.queue, CPUs))
+                pthread_cond_signal(&q_CPUs.cond);
+            pthread_mutex_unlock(&q_CPUs.mutex);
+        }
+
+       sleep(L_SEK);
+    }
+
+}
+
+
+void* thAnalyzerFunc(void* arg){
+    (void)arg;
+
+    cpustat_t CPUsprev[cpu_count], CPUscurr[cpu_count];
+    float CPUsPerc[cpu_count];
+
+    memset(CPUsprev, 0, sizeof(CPUsprev)); //inicjalizacja zerami
+    memset(CPUscurr, 0, sizeof(CPUscurr));
+
+    while(1){
+
+        pthread_mutex_lock(&q_CPUs.mutex);
+        while(!qDeque(q_CPUs.queue, CPUscurr))
+            pthread_cond_wait(&q_CPUs.cond, &q_CPUs.mutex);
+        pthread_mutex_unlock(&q_CPUs.mutex);
+
+        cpuCalcAll(CPUsprev, CPUscurr, CPUsPerc, cpu_count);
+        memcpy(CPUsprev, CPUscurr, sizeof(CPUsprev));
+
+
+        pthread_mutex_lock(&q_CPUsPerc.mutex);
+        if(qEnque(q_CPUsPerc.queue, CPUsPerc))
+            pthread_cond_signal(&q_CPUsPerc.cond);
+
+        pthread_mutex_unlock(&q_CPUsPerc.mutex);
+
+    }
+}
+
+
+void* thPrinterFunc(void* arg){
+    (void)arg;
+
+    float CPUsPerc[cpu_count];
+
+    while(1){
+        pthread_mutex_lock(&q_CPUsPerc.mutex);
+        while(!qDeque(q_CPUsPerc.queue, CPUsPerc))
+            pthread_cond_wait(&q_CPUsPerc.cond, &q_CPUsPerc.mutex);
+        pthread_mutex_unlock(&q_CPUsPerc.mutex);
+
+
+        cpuPrint(CPUsPerc, cpu_count);
+        printf("\n");
+
+        sleep(L_SEK);
+    }
+}
+
