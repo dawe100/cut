@@ -17,7 +17,7 @@ bool cpuRead(FILE* file, cpustat_t* cpustat, int cpuNo){
     }
 
     fscanf(file, "%s", cpuname);
-    if (strncmp(cpuname, "cpu", 3) != 0)    //gdy linia nie zaczyna sie od "cpu" wyjdź
+    if (strncmp(cpuname, "cpu", 3) != 0)
         return false;
 
     if(sscanf(cpuname, "%*3c%d", &cpuno_read) != EOF)  //odrzucenie trzech znakow i proba odczytu liczby
@@ -27,6 +27,7 @@ bool cpuRead(FILE* file, cpustat_t* cpustat, int cpuNo){
 
 
     unsigned long *ptr = &(cpustat->user);
+
     while(fscanf(file, "%ld", &read)){  //dopóki odczytuje poprawnie long (czyli do konca linii)
         *ptr = read;
         ++ptr;

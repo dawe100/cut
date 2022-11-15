@@ -4,6 +4,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-void cpuPrint(float[], unsigned int);
+void cpuPrint(const float[], unsigned int);
 
 #endif

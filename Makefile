@@ -1,4 +1,4 @@
-CFLAGS ?= -Wall -Wextra
+CFLAGS = -Wall -Wextra
 
 PROGNAME = a
 
@@ -16,7 +16,7 @@ INCFLAG = -I./${INCDIR}
 all: ${PROGNAME} ${SRCS}
 
 ${PROGNAME}: ${OBJS}
-	${CC} -o $@ ${OBJS} 
+	${CC} -o $@ ${OBJS} -pthread
 
 ${OBJS}: ${OBJDIR}/%.o : ${SRCDIR}/%.c
 	${CC} -c $< -o $@ ${CFLAGS} ${INCFLAG}
