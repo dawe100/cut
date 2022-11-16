@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include "Kolejka.h"
 
+void testEnque(void);
+void testDeque(void);
+
 void testEnque(){
     int a[5] = {3,-2, 1, 4, 5};
     char b[5] = "test";

@@ -45,4 +45,4 @@ test_kolejki: ${TESTDIR}/Kolejka_test.c
 .PHONY: clean
 
 clean:
-	rm -f ${OBJDIR}/*.o ./${PROGNAME}
+	rm -f ${OBJDIR}/*.o ./${PROGNAME} ./test_kolejki
