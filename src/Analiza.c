@@ -31,4 +31,4 @@ void cpuCalcAll(const cpustat_t CPUsprev[], const cpustat_t CPUscurr[], float CP
 }
 
 
- 
+

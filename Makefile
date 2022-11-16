@@ -1,4 +1,4 @@
-CLANGFLAGS = -Weverything -Wno-padded -Wno-vla -Wno-double-promotion
+CLANGFLAGS = -Weverything -Wno-padded -Wno-vla -Wno-double-promotion -Wno-disabled-macro-expansion
 GCCFLAGS = -Wall -Wextra
 
 ifeq (${CC}, gcc)
@@ -11,11 +11,12 @@ else
 	endif
 endif
 
-PROGNAME = a
+PROGNAME = cut
 
 SRCDIR = src
 INCDIR = inc
 OBJDIR = obj
+TESTDIR = test
 
 SRCS := $(wildcard ${SRCDIR}/*.c)
 INCS := $(wildcard ${INCDIR}/*.h)
@@ -29,8 +30,16 @@ all: ${PROGNAME} ${SRCS}
 ${PROGNAME}: ${OBJS}
 	${CC} -o $@ ${OBJS} -pthread
 
-${OBJS}: ${OBJDIR}/%.o : ${SRCDIR}/%.c
+${OBJS}: ${OBJDIR}/%.o : ${SRCDIR}/%.c | mkdir
 	${CC} -c $< -o $@ ${INCFLAG} ${CFLAGS}
+
+mkdir:
+	@mkdir -p obj
+
+test: test_kolejki
+
+test_kolejki: ${TESTDIR}/Kolejka_test.c
+	${CC} -o test_kolejki ${TESTDIR}/Kolejka_test.c src/Kolejka.c ${INCFLAG} ${CFLAGS}	
 
 
 .PHONY: clean

@@ -31,6 +31,8 @@ static unsigned int cpu_count;
 
 static pthread_t th_reader, th_analyzer, th_printer;
 
+
+
 int main(){
     struct sigaction action;
     memset(&action, 0, sizeof(struct sigaction));
@@ -63,10 +65,10 @@ int main(){
     pthread_cond_destroy(&q_CPUs.cond);
     pthread_cond_destroy(&q_CPUsPerc.cond);
 
-    free(q_CPUs.queue);
-    free(q_CPUsPerc.queue);
     qClear(q_CPUs.queue);
     qClear(q_CPUsPerc.queue);
+    free(q_CPUs.queue);
+    free(q_CPUsPerc.queue);
 
     return 0;
 }
@@ -88,7 +90,6 @@ void* thReaderFunc(void* arg){
         }
         sleep(L_SEK);
     }
-
 }
 
 
@@ -98,7 +99,7 @@ void* thAnalyzerFunc(void* arg){
     cpustat_t CPUsprev[cpu_count], CPUscurr[cpu_count];
     float CPUsPerc[cpu_count];
 
-    memset(CPUsprev, 0, sizeof(CPUsprev)); //inicjalizacja zerami
+    memset(CPUsprev, 0, sizeof(CPUsprev));
     memset(CPUscurr, 0, sizeof(CPUscurr));
 
     while(1){
