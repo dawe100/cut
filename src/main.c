@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#include <signal.h>
+
 #include "Kolejka.h"
 #include "CPUstat.h"
 #include "Odczyt.h"
@@ -10,9 +12,10 @@
 
 #define L_SEK 1
 
-void* thReaderFunc(void* arg);
-void* thAnalyzerFunc(void* arg);
-void* thPrinterFunc(void* arg);
+void* thReaderFunc(void*);
+void* thAnalyzerFunc(void*);
+void* thPrinterFunc(void*);
+void term(int);
 
 
 typedef struct QueueTh_s{
@@ -24,11 +27,16 @@ typedef struct QueueTh_s{
 
 static queueTh_t q_CPUs, q_CPUsPerc;
 
-static unsigned int cpu_count = 0;
+static unsigned int cpu_count;
 
-
+static pthread_t th_reader, th_analyzer, th_printer;
 
 int main(){
+    struct sigaction action;
+    memset(&action, 0, sizeof(struct sigaction));
+    action.sa_handler = term;
+    sigaction(SIGTERM, &action, NULL);
+
 
     cpu_count = cpuCount("/proc/stat");
 
@@ -40,7 +48,6 @@ int main(){
     pthread_cond_init(&q_CPUs.cond, NULL);
     pthread_cond_init(&q_CPUsPerc.cond, NULL);
 
-    pthread_t th_reader, th_analyzer, th_printer;
 
     pthread_create(&th_reader, NULL, thReaderFunc, NULL);
     pthread_create(&th_analyzer, NULL, thAnalyzerFunc, NULL);
@@ -51,16 +58,15 @@ int main(){
     pthread_join(th_analyzer, NULL);
     pthread_join(th_printer, NULL);
 
-    pthread_mutex_destroy(&q_CPUsPerc.mutex);
     pthread_mutex_destroy(&q_CPUs.mutex);
-    pthread_cond_destroy(&q_CPUsPerc.cond);
+    pthread_mutex_destroy(&q_CPUsPerc.mutex);
     pthread_cond_destroy(&q_CPUs.cond);
+    pthread_cond_destroy(&q_CPUsPerc.cond);
 
-    qClear(q_CPUsPerc.queue);
-    qClear(q_CPUs.queue);
     free(q_CPUs.queue);
     free(q_CPUsPerc.queue);
-
+    qClear(q_CPUs.queue);
+    qClear(q_CPUsPerc.queue);
 
     return 0;
 }
@@ -80,8 +86,7 @@ void* thReaderFunc(void* arg){
                 pthread_cond_signal(&q_CPUs.cond);
             pthread_mutex_unlock(&q_CPUs.mutex);
         }
-
-       sleep(L_SEK);
+        sleep(L_SEK);
     }
 
 }
@@ -113,6 +118,7 @@ void* thAnalyzerFunc(void* arg){
 
         pthread_mutex_unlock(&q_CPUsPerc.mutex);
 
+        pthread_testcancel();
     }
 }
 
@@ -122,12 +128,12 @@ void* thPrinterFunc(void* arg){
 
     float CPUsPerc[cpu_count];
 
+
     while(1){
         pthread_mutex_lock(&q_CPUsPerc.mutex);
         while(!qDeque(q_CPUsPerc.queue, CPUsPerc))
             pthread_cond_wait(&q_CPUsPerc.cond, &q_CPUsPerc.mutex);
         pthread_mutex_unlock(&q_CPUsPerc.mutex);
-
 
         cpuPrint(CPUsPerc, cpu_count);
         printf("\n");
@@ -136,3 +142,12 @@ void* thPrinterFunc(void* arg){
     }
 }
 
+
+
+void term(int signum){
+    if(signum == SIGTERM){
+        pthread_cancel(th_reader);
+        pthread_cancel(th_analyzer);
+        pthread_cancel(th_printer);
+    }
+}
